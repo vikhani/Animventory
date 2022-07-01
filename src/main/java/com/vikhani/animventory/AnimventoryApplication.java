@@ -1,4 +1,4 @@
-package com.vikhani.Animventory;
+package com.vikhani.animventory;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
