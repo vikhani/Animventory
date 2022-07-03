@@ -1,12 +1,15 @@
 package com.vikhani.animventory.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.vikhani.animventory.enums.AppUserRole;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
+import java.util.List;
 import javax.persistence.*;
-import java.util.Collection;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "users")
@@ -14,17 +17,21 @@ import java.util.Collection;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class AppUser {
+public class AppUser implements Serializable {
     @Id
-    @GeneratedValue
-    Long id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
     @Column(unique = true, nullable = false)
-    String name;
+    private String username;
 
     @Column(nullable = false)
-    String password;
+    private String password;
+
+    @JsonIgnore
+    @Enumerated(EnumType.STRING)
+    private AppUserRole role;
 
     @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL, orphanRemoval = true)
-    Collection<Animal> animals;
+    private List<Animal> animals;
 }
