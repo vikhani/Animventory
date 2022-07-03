@@ -1,7 +1,7 @@
 # Animventory
 Test assignment for Art Plan Software.
 
-Stack
+## Stack
 - Java 11
 - Spring Boot
 - Spring Security
