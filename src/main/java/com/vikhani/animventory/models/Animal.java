@@ -1,10 +1,15 @@
 package com.vikhani.animventory.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import com.vikhani.animventory.enums.Genders;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.*;
@@ -15,33 +20,29 @@ import javax.persistence.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Animal {
-    public enum Gender {
-        UNKNOWN,
-        MALE,
-        FEMALE
-    }
+public class Animal implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
     @Column(name = "nickname", unique = true, nullable = false)
-    String nickname;
+    private String nickname;
 
     @Column(name = "birthday", nullable = false)
-    Date birthday;
+    private Date birthday;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", nullable = false)
-    Gender gender;
+    private Genders gender;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "species_id", nullable = false)
-    Species species;
+    private Species species;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
-    AppUser appUser;
+    @JsonIgnore
+    private AppUser appUser;
 
 }
