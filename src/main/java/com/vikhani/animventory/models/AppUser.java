@@ -7,6 +7,7 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
 import java.io.Serializable;
@@ -34,4 +35,13 @@ public class AppUser implements Serializable {
 
     @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Animal> animals;
+
+    @Column(name = "account_non_locked")
+    private boolean accountNonLocked;
+
+    @Column(name = "failed_attempts")
+    private int failedAttempts;
+
+    @Column(name = "lock_time")
+    private Date lockTime;
 }

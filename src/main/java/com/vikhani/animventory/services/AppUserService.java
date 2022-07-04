@@ -21,11 +21,15 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import java.util.Date;
 import java.util.ArrayList;
 
 @Service
 @AllArgsConstructor
 public class AppUserService implements UserDetailsService {
+    public static final int MAX_FAILED_ATTEMPTS = 10;
+    private static final long LOCK_TIME_DURATION = 60 * 60 * 1000L;
+
     private CustomPasswordEncoder passwordEncoder;
     private AppUserRepository repository;
 
@@ -35,6 +39,7 @@ public class AppUserService implements UserDetailsService {
         }
 
         AppUser user = new AppUser();
+        user.setAccountNonLocked(true);
         user.setUsername(accountDto.getUsername());
         user.setPassword(passwordEncoder.encoder().encode(accountDto.getPassword()));
         user.setAnimals(new ArrayList<>());
@@ -70,5 +75,45 @@ public class AppUserService implements UserDetailsService {
         } else {
             throw new AccessDeniedException("User is not authenticated.");
         }
+    }
+
+    public AppUser getByUsername(String username) {
+        return repository.findByUsername(username);
+    }
+
+    public void increaseFailedAttempts(AppUser user) {
+        int newFailAttempts = user.getFailedAttempts() + 1;
+        repository.updateFailedAttemptsCount(newFailAttempts, user.getUsername());
+    }
+
+    public void resetFailedAttempts(String username) {
+        repository.updateFailedAttemptsCount(0, username);
+    }
+
+    public void lock(AppUser user) {
+        user.setAccountNonLocked(false);
+        user.setLockTime(new Date());
+
+        repository.save(user);
+    }
+
+    public boolean unlockWhenTimeExpired(AppUser user) {
+        Date lockDate = user.getLockTime();
+        if (lockDate == null)
+            return true;
+
+        long lockTime = lockDate.getTime();
+        long currentTime = System.currentTimeMillis();
+
+        if (lockTime + LOCK_TIME_DURATION > currentTime)
+            return false;
+
+        user.setAccountNonLocked(true);
+        user.setLockTime(null);
+        user.setFailedAttempts(0);
+
+        repository.save(user);
+
+        return true;
     }
 }
