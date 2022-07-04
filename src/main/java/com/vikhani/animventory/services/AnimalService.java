@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import lombok.AllArgsConstructor;
 
 import java.util.List;
-import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 
 @Service
@@ -59,11 +58,10 @@ public class AnimalService {
     public AnimalDto getAnimal(Long animalId) {
         Animal animal;
 
-        try {
-            animal = animalRepo.getById(animalId);
-        } catch (EntityNotFoundException ex) {
-            throw new NotFoundException("Animal with id=" + animalId + " not found.", ex);
-        }
+        animal = animalRepo.getById(animalId);
+
+        if (animal == null)
+            throw new NotFoundException("Animal with id=" + animalId + " not found.");
 
         AnimalDto dto = new AnimalDto();
         dto.setNickname(animal.getNickname());
