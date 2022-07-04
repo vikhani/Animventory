@@ -44,4 +44,7 @@ public class AppUser implements Serializable {
 
     @Column(name = "lock_time")
     private Date lockTime;
+
+    @Column(name = "first_fail")
+    private Date firstFail;
 }

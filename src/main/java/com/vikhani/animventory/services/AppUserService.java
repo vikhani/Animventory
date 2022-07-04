@@ -28,7 +28,8 @@ import java.util.ArrayList;
 @AllArgsConstructor
 public class AppUserService implements UserDetailsService {
     public static final int MAX_FAILED_ATTEMPTS = 10;
-    private static final long LOCK_TIME_DURATION = 60 * 60 * 1000L;
+    private static final long LOCK_TIME_DURATION = 60 * 60 * 1000L; // 1hr
+    public static final long FAIL_TIME_WINDOW = 60 * 60 * 1000L; // 1hr
 
     private CustomPasswordEncoder passwordEncoder;
     private AppUserRepository repository;
@@ -81,8 +82,24 @@ public class AppUserService implements UserDetailsService {
         return repository.findByUsername(username);
     }
 
-    public void increaseFailedAttempts(AppUser user) {
-        int newFailAttempts = user.getFailedAttempts() + 1;
+    public void changeFailedAttemptsAccordingToFailTimeWindow(AppUser user) {
+        if (!isInFailTimeWindow(user)) {
+            resetFailedAttempts(user.getUsername());
+            unlockUser(user);
+            return;
+        }
+
+        increaseFailedAttempts(user);
+    }
+
+    private void increaseFailedAttempts(AppUser user) {
+        int attemptsCount = user.getFailedAttempts();
+        if (attemptsCount == 0 && user.getFirstFail() == null) {
+            user.setFirstFail(new Date());
+            repository.save(user);
+        }
+
+        int newFailAttempts = attemptsCount + 1;
         repository.updateFailedAttemptsCount(newFailAttempts, user.getUsername());
     }
 
@@ -90,30 +107,64 @@ public class AppUserService implements UserDetailsService {
         repository.updateFailedAttemptsCount(0, username);
     }
 
-    public void lock(AppUser user) {
+    public boolean attemptLock(AppUser user) {
+        if (!isInFailTimeWindow(user)) {
+            user.setFirstFail(null);
+            repository.save(user);
+
+            return false;
+        }
+
+        lockUser(user);
+
+        return true;
+    }
+
+    private void lockUser(AppUser user) {
         user.setAccountNonLocked(false);
         user.setLockTime(new Date());
-
         repository.save(user);
     }
 
     public boolean unlockWhenTimeExpired(AppUser user) {
-        Date lockDate = user.getLockTime();
-        if (lockDate == null)
+        if (user.getLockTime() == null)
             return true;
 
-        long lockTime = lockDate.getTime();
-        long currentTime = System.currentTimeMillis();
-
-        if (lockTime + LOCK_TIME_DURATION > currentTime)
+        if (isInLockTimeDuration(user))
             return false;
 
+        unlockUser(user);
+
+        return true;
+    }
+
+    private boolean isInFailTimeWindow(AppUser user) {
+        Date firstFailDate = user.getFirstFail();
+        if (firstFailDate == null) {
+            return true;
+        }
+
+        long firstFailTime = firstFailDate.getTime();
+        long currentTime = System.currentTimeMillis();
+        return firstFailTime + FAIL_TIME_WINDOW > currentTime;
+    }
+
+    private boolean isInLockTimeDuration(AppUser user) {
+        long lockTime = user.getLockTime().getTime();
+        long currentTime = System.currentTimeMillis();
+        return lockTime + LOCK_TIME_DURATION > currentTime;
+    }
+
+    private void unlockUser(AppUser user) {
         user.setAccountNonLocked(true);
         user.setLockTime(null);
+        user.setFirstFail(null);
         user.setFailedAttempts(0);
 
         repository.save(user);
+    }
 
-        return true;
+    public static boolean hasFailedLoginAttemptsLeft(AppUser user) {
+        return user.getFailedAttempts() < AppUserService.MAX_FAILED_ATTEMPTS - 1;
     }
 }
