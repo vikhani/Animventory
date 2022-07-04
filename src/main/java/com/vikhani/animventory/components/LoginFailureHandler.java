@@ -35,11 +35,12 @@ public class LoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
             return null;
 
         if (user.isAccountNonLocked()) {
-            if (user.getFailedAttempts() < AppUserService.MAX_FAILED_ATTEMPTS - 1) {
-                userService.increaseFailedAttempts(user);
+            if (AppUserService.hasFailedLoginAttemptsLeft(user)) {
+                userService.changeFailedAttemptsAccordingToFailTimeWindow(user);
             } else {
-                userService.lock(user);
-                return new LockedException("Your account has been locked due to 10 failed attempts. It will be unlocked after 1 hour.");
+                return userService.attemptLock(user)
+                        ? new LockedException("Your account has been locked due to 10 failed attempts. It will be unlocked after 1 hour.")
+                        : null;
             }
         } else if (!userService.unlockWhenTimeExpired(user)) {
             return new LockedException("Your account has been locked. Please try to login again later.");
