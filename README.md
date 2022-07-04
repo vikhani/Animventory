@@ -2,7 +2,7 @@
 Test assignment for Art Plan Software.
 
 ## Stack
-- Java 11
+- Java 8
 - Spring Boot
 - Spring Security
 - H2
