@@ -20,6 +20,13 @@ public class LoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
     @Autowired
     private AppUserService userService;
 
+    // org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter
+    // doFilter:223, AbstractAuthenticationProcessingFilter (org.springframework.security.web.authentication)
+    // checks passed params via request.getParameter(...) which reads parameters from the query string
+    // or from form data in the body. It does not try to parse JSON body content.
+    // https://stackoverflow.com/questions/69362349/httpservletrequest-getparameter-of-spring-boot-handlerinterceptor-returns-null
+    // https://docs.oracle.com/javaee/7/api/javax/servlet/ServletRequest.html#getParameterMap--
+
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
         String username = request.getParameter("username");

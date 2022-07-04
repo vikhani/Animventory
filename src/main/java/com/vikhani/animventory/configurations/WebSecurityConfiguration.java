@@ -40,10 +40,14 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.authorizeRequests()
+        httpSecurity
+                .csrf().disable()
+                .authorizeRequests()
                     .antMatchers(HttpMethod.POST, "/registration").not().authenticated()
                 .and()
                     .authorizeRequests()
+                        .antMatchers("/error").permitAll()
+                        .antMatchers("/login*").permitAll()
                         .anyRequest()
                         .authenticated()
                 .and()
@@ -55,10 +59,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .logout()
                         .permitAll()
                 .and()
-                    .httpBasic()
-                .and()
-                    .csrf()
-                        .disable();
+                    .httpBasic();
     }
 
     @Override
