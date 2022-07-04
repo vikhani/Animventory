@@ -36,7 +36,7 @@ public class AppUserService implements UserDetailsService {
 
     public AppUser registerNewUserAccount(AppUserDto accountDto) {
         if (repository.findByUsername(accountDto.getUsername()) != null) {
-            throw new NameExistsException("This username is taken:" + accountDto.getUsername());
+            throw new NameExistsException("This username is taken: " + accountDto.getUsername());
         }
 
         AppUser user = new AppUser();
@@ -48,11 +48,15 @@ public class AppUserService implements UserDetailsService {
 
         repository.save(user);
 
+        manualLogin(user);
+
+        return user;
+    }
+
+    public void manualLogin(AppUser user) {
         UserDetails principal = loadUserByUsername(user.getUsername());
         Authentication auth = new UsernamePasswordAuthenticationToken(principal.getUsername(), principal.getPassword(), principal.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
-
-        return user;
     }
 
     @Override
@@ -146,6 +150,7 @@ public class AppUserService implements UserDetailsService {
 
         long firstFailTime = firstFailDate.getTime();
         long currentTime = System.currentTimeMillis();
+
         return firstFailTime + FAIL_TIME_WINDOW > currentTime;
     }
 

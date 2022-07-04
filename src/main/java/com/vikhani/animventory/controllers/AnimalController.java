@@ -5,7 +5,10 @@ import com.vikhani.animventory.models.Animal;
 import com.vikhani.animventory.models.AppUser;
 import com.vikhani.animventory.services.AnimalService;
 import com.vikhani.animventory.services.AppUserService;
+import com.vikhani.animventory.exceptions.InvalidInputException;
+
 import lombok.AllArgsConstructor;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,10 +40,10 @@ public class AnimalController {
     }
 
     @GetMapping("/is_nickname_taken")
-    public boolean isNameAvailable(@RequestBody Map<String, String> input){
+    public boolean isNameAvailable(@RequestBody Map<String, String> input) {
         String nickname = input.get("nickname");
-        if(nickname == null)
-            throw new IllegalArgumentException("No username passed for checking");
+        if (nickname == null)
+            throw new InvalidInputException("No animal nickname passed for checking.");
 
         return animalService.checkIfNameTaken(nickname);
     }

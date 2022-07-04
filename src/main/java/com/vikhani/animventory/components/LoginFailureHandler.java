@@ -2,6 +2,7 @@ package com.vikhani.animventory.components;
 
 import com.vikhani.animventory.models.AppUser;
 import com.vikhani.animventory.services.AppUserService;
+import com.vikhani.animventory.exceptions.UserLockedException;
 
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +40,11 @@ public class LoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
                 userService.changeFailedAttemptsAccordingToFailTimeWindow(user);
             } else {
                 return userService.attemptLock(user)
-                        ? new LockedException("Your account has been locked due to 10 failed attempts. It will be unlocked after 1 hour.")
+                        ? new UserLockedException("Your account has been locked due to 10 failed attempts. It will be unlocked after 1 hour.")
                         : null;
             }
         } else if (!userService.unlockWhenTimeExpired(user)) {
-            return new LockedException("Your account has been locked. Please try to login again later.");
+            return new UserLockedException("Your account has been locked. Please try to login again later.");
         }
 
         return null;
