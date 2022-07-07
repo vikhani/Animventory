@@ -26,11 +26,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     private LoginFailureHandler loginFailureHandler;
     @Autowired
     private LoginSuccessHandler loginSuccessHandler;
-    @Autowired
-    CustomPasswordEncoder encoder;
 
     @Bean
-    AuthenticationProvider authenticationProvider() {
+    AuthenticationProvider authenticationProvider(CustomPasswordEncoder encoder) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(appUserService);
         provider.setPasswordEncoder(encoder.encoder());
