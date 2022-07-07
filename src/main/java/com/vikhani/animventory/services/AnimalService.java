@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import lombok.AllArgsConstructor;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
 @Service
@@ -42,17 +43,24 @@ public class AnimalService {
         else
             animal.setSpecies(speciesRepo.getBySpeciesName("Unknown"));
 
-        user.getAnimals().add(animal);
         animal.setAppUser(user);
 
         animalRepo.save(animal);
-        userRepo.save(user);
 
         return animal;
     }
 
-    public List<Animal> getAllAnimals(AppUser user) {
-        return user.getAnimals();
+    public List<AnimalDto> getAllAnimals(AppUser user) {
+        return user.getAnimals().stream()
+                        .map(animal-> {
+                            AnimalDto dto = new AnimalDto();
+                            dto.setNickname(animal.getNickname());
+                            dto.setBirthday(animal.getBirthday());
+                            dto.setGender(animal.getGender());
+                            dto.setSpecies(animal.getSpecies().getSpeciesName());
+                            return dto; // return mutated instance
+                        })
+                        .collect(Collectors.toList());
     }
 
     public AnimalDto getAnimal(Long animalId) {

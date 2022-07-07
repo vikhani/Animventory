@@ -29,7 +29,7 @@ public class AnimalController {
     }
 
     @GetMapping
-    public List<Animal> getAnimals() {
+    public List<AnimalDto> getAnimals() {
         AppUser user = userService.getCurrentUser();
         return animalService.getAllAnimals(user);
     }
